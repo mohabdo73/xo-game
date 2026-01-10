@@ -113,7 +113,7 @@ skinSelect.addEventListener('change', (e) => {
     currentSkin = e.target.value;
     localStorage.setItem('xo_skin', currentSkin);
     applySkin(currentSkin);
-    if (socket && room && gameMode.startsWith('online')) {
+    if (socket && room && (gameMode.startsWith('online') || gameMode === 'rejoin')) {
         socket.emit('changeSkin', { room, skin: currentSkin });
     }
 });
@@ -175,7 +175,7 @@ function selectGameMode(mode) {
     scores.x = 0; scores.o = 0; scores.tie = 0;
     updateScoreboard();
 
-    if (mode.startsWith('online')) {
+    if (mode.startsWith('online') || mode === 'rejoin') {
         connectToServer(mode);
         chatContainer.classList.remove('hidden');
         if (mode !== 'online-spectate') {
@@ -220,7 +220,7 @@ function startGame() {
         cell.addEventListener('click', handleClick); // تم إزالة { once: true } لإصلاح مشكلة اللعب أونلاين
     });
 
-    if (!gameMode.startsWith('online')) {
+    if (!gameMode.startsWith('online') && gameMode !== 'rejoin') {
         setStatusText();
     }
 }
@@ -238,7 +238,7 @@ function handleClick(e) {
     let currentClass;
 
     // تحديد الرمز الحالي بناءً على وضع اللعب
-    if (gameMode.startsWith('online')) {
+    if (gameMode.startsWith('online') || gameMode === 'rejoin') {
         if (!myTurn) return; // لا تفعل شيئًا إذا لم يكن دورك
         currentClass = playerSymbol === 'X' ? X_CLASS : O_CLASS;
     } else {
@@ -250,7 +250,7 @@ function handleClick(e) {
     if (isSoundEnabled) clickSound.play();
 
     // 2. إذا كان اللعب عبر الإنترنت، أرسل الحركة إلى الخادم فورًا
-    if (gameMode.startsWith('online')) {
+    if (gameMode.startsWith('online') || gameMode === 'rejoin') {
         const cellIndex = [...cells].indexOf(cell);
         socket.emit('playerMove', { cellIndex: cellIndex, room: room });
         myTurn = false; // لقد انتهى دورك بمجرد إرسال الحركة
@@ -267,7 +267,7 @@ function handleClick(e) {
     // 5. إذا لم تنته اللعبة، انتقل للدور التالي
     else {
         // في الأوضاع غير المتصلة بالإنترنت، قم بتبديل الأدوار
-        if (!gameMode.startsWith('online')) {
+        if (!gameMode.startsWith('online') && gameMode !== 'rejoin') {
             swapTurns();
             setStatusText();
             // إذا كان الدور على الكمبيوتر، فدعه يلعب
@@ -297,7 +297,7 @@ function endGame(draw, winnerClass = null) {
         if (isSoundEnabled) winSound.play();
 
         // تحديث لوحة المتصدرين إذا فاز اللاعب المحلي
-        if (!gameMode.startsWith('online')) {
+        if (!gameMode.startsWith('online') && gameMode !== 'rejoin') {
             // منطق بسيط للمحلي
         } else {
             // Leaderboard is now handled by server
@@ -307,7 +307,7 @@ function endGame(draw, winnerClass = null) {
 
     cells.forEach(cell => cell.removeEventListener('click', handleClick));
 
-    if (gameMode.startsWith('online')) {
+    if (gameMode.startsWith('online') || gameMode === 'rejoin') {
         restartButton.innerText = 'العب مرة أخرى';
         isOnlineGameEnded = true;
     }
@@ -331,7 +331,7 @@ function swapTurns() {
 
 function setStatusText() {
     // تحديث تمييز اللاعب النشط
-    const isXTurn = gameMode.startsWith('online') ?
+    const isXTurn = (gameMode.startsWith('online') || gameMode === 'rejoin') ?
         ((playerSymbol === 'X' && myTurn) || (playerSymbol === 'O' && !myTurn)) :
         !oTurn;
 
@@ -343,7 +343,7 @@ function setStatusText() {
         document.getElementById('player-x-score').classList.remove('active-player');
     }
 
-    if (gameMode.startsWith('online')) {
+    if (gameMode.startsWith('online') || gameMode === 'rejoin') {
         statusText.innerText = myTurn ? "دورك الآن." : `دور ${opponentName}...`;
     } else {
         const currentPlayerName = oTurn ? nameOElement.innerText : nameXElement.innerText;
@@ -375,7 +375,7 @@ function updateScoreboard() {
 }
 
 function handleRestartClick() {
-    if (gameMode.startsWith('online')) {
+    if (gameMode.startsWith('online') || gameMode === 'rejoin') {
         if (isOnlineGameEnded) {
             socket.emit('playAgainRequest', { room });
             statusText.innerText = 'تم إرسال طلب... في انتظار الخصم...';
@@ -479,15 +479,6 @@ function connectToServer(mode) {
 
     socket.on('connect', () => {
         socket.emit('registerUser', myUserId);
-
-        // إذا كان هناك غرفة مخزنة نحاول الانضمام لها (Rejoin Logic)
-        const storedRoom = localStorage.getItem('xo_active_room');
-        if (storedRoom && !mode.startsWith('online')) {
-            // Note: If we are just opening the page and want to auto-reconnect, we'd need more logic.
-            // But here, if we are initiating a connection via button click, we follow the button's intent.
-            // However, we can also check for auto-rejoin on page load?
-            // For now, let's stick to the mode requested.
-        }
 
         if (mode === 'online-create') {
             socket.emit('createRoom', { playerName: myName, skin: currentSkin });
@@ -807,12 +798,6 @@ function renderLeaderboard() {
 window.addEventListener('load', () => {
     // Small delay to ensure socket script loaded if external (it is local though)
     const activeRoom = localStorage.getItem('xo_active_room');
-    if (activeRoom) {
-        // We need to trigger connection mode 'rejoin'
-        // But we need 'myName' and 'socket' initialized.
-        // Let's create a temporary connection to try rejoining.
-        selectGameMode('rejoin');
-    }
 
     // Also, if we are just "browsing", we might want to see the leaderboard updates live?
     // We can open a socket just for leaderboard if we are at menu?
@@ -825,9 +810,6 @@ window.addEventListener('load', () => {
         socket = io(serverUrl);
         socket.on('connect', () => {
             socket.emit('registerUser', myUserId);
-            if (activeRoom) {
-                selectGameMode('rejoin');
-            }
         });
         socket.on('leaderboardUpdate', (data) => {
             currentLeaderboard = data;
