@@ -1,0 +1,801 @@
+/* ====================================================== */
+/* 1. الإعدادات الأساسية والمتغيرات */
+/* ====================================================== */
+:root {
+    --cell-size: 100px;
+    --mark-size: calc(var(--cell-size) * 0.9);
+
+    /* NEW: Neon Color Palette */
+    --bg-color: #0D1117;
+    --card-color: rgba(22, 27, 34, 0.8);
+    --border-color: #30C5D2;
+    --primary-text-color: #C9D1D9;
+    --secondary-text-color: #8B949E;
+    --accent-color-1: #30C5D2;
+    /* Cyan */
+    --accent-color-2: #E84982;
+    /* Pink */
+    --win-color: #FFD700;
+    /* Gold */
+    --font-family: 'Cairo', sans-serif;
+}
+
+body {
+    font-family: var(--font-family);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0D1117, #161b22, #0D1117);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    color: var(--primary-text-color);
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+@keyframes gradientBG {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--accent-color-1);
+    text-shadow: 0 0 10px var(--accent-color-1), 0 0 20px rgba(48, 197, 210, 0.5);
+    transition: opacity 0.5s ease-in-out;
+    margin-bottom: 30px;
+}
+
+h2 {
+    color: var(--primary-text-color);
+    border-bottom: 1px solid var(--accent-color-1);
+    padding-bottom: 5px;
+    margin-top: 0;
+}
+
+/* ====================================================== */
+/* 2. تصميم القائمة الرئيسية (Start Menu) */
+/* ====================================================== */
+#start-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    text-align: center;
+    transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+}
+
+.menu-section {
+    background: var(--card-color);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    padding: 25px;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 320px;
+    box-shadow: 0 0 15px rgba(48, 197, 210, 0.3);
+}
+
+#start-menu input,
+#start-menu select {
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--secondary-text-color);
+    background-color: var(--bg-color);
+    color: var(--primary-text-color);
+    text-align: center;
+    font-family: var(--font-family);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+#start-menu input:focus,
+#start-menu select:focus {
+    outline: none;
+    border-color: var(--accent-color-1);
+    box-shadow: 0 0 10px rgba(48, 197, 210, 0.5);
+}
+
+#start-menu button {
+    font-size: 1.1rem;
+    font-family: var(--font-family);
+    font-weight: 700;
+    padding: 12px 25px;
+    cursor: pointer;
+    border: 2px solid var(--accent-color-1);
+    background-color: transparent;
+    color: var(--accent-color-1);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 5px rgba(48, 197, 210, 0.7);
+}
+
+#start-menu button:hover {
+    background-color: var(--accent-color-1);
+    color: var(--bg-color);
+    box-shadow: 0 0 25px var(--accent-color-1);
+    transform: translateY(-3px) scale(1.02);
+}
+
+#start-menu button:active {
+    transform: translateY(-1px) scale(0.98);
+}
+
+.join-room-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.join-inputs {
+    display: flex;
+}
+
+.join-inputs input {
+    width: 100%;
+}
+
+.join-buttons {
+    display: flex;
+    gap: 5px;
+}
+
+.join-buttons button {
+    flex: 1;
+    padding: 8px 10px !important;
+    font-size: 0.9rem !important;
+}
+
+.secondary-btn {
+    border-color: var(--secondary-text-color) !important;
+    color: var(--secondary-text-color) !important;
+}
+
+.secondary-btn:hover {
+    background-color: var(--secondary-text-color) !important;
+    color: var(--bg-color) !important;
+    box-shadow: 0 0 15px rgba(139, 148, 158, 0.5) !important;
+}
+
+.setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+}
+
+#room-code-display {
+    color: var(--accent-color-2);
+    font-weight: bold;
+    letter-spacing: 2px;
+    height: 20px;
+}
+
+/* ====================================================== */
+/* 3. حاوية اللعبة (Game Container) */
+/* ====================================================== */
+#game-container {
+    transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+}
+
+#game-container.hidden,
+#start-menu.hidden {
+    opacity: 0;
+    transform: scale(0.95);
+    pointer-events: none;
+    position: absolute;
+}
+
+#scoreboard {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 350px;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+#scoreboard>div {
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+#scoreboard .active-player {
+    border-color: var(--accent-color-1);
+    box-shadow: 0 0 15px var(--accent-color-1);
+    color: var(--accent-color-1);
+    transform: scale(1.05);
+}
+
+#status-text {
+    height: 30px;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    color: var(--primary-text-color);
+}
+
+/* ====================================================== */
+/* 4. لوحة اللعب (Board & Cells) */
+/* ====================================================== */
+.board {
+    display: grid;
+    grid-template-columns: repeat(3, var(--cell-size));
+    grid-template-rows: repeat(3, var(--cell-size));
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.cell {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    background-color: var(--card-color);
+    border: 1px solid var(--secondary-text-color);
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 5rem;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.cell:not(.x):not(.o):hover {
+    background-color: rgba(48, 197, 210, 0.15);
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(48, 197, 210, 0.3);
+    border-color: var(--accent-color-1);
+}
+
+.cell.x,
+.cell.o {
+    cursor: not-allowed;
+    animation: placeMark 0.3s ease-out;
+}
+
+@keyframes placeMark {
+    from {
+        transform: scale(0.6);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.cell.x::before {
+    content: 'X';
+    color: var(--accent-color-1);
+    text-shadow: 0 0 15px var(--accent-color-1);
+}
+
+.cell.o::before {
+    content: 'O';
+    color: var(--accent-color-2);
+    text-shadow: 0 0 15px var(--accent-color-2);
+}
+
+.cell.winning-cell {
+    background-color: var(--win-color);
+    animation: winPulse 1s infinite;
+}
+
+.cell.winning-cell.x::before,
+.cell.winning-cell.o::before {
+    color: var(--bg-color);
+    text-shadow: none;
+}
+
+@keyframes winPulse {
+    0% {
+        box-shadow: 0 0 10px var(--win-color);
+    }
+
+    50% {
+        box-shadow: 0 0 25px var(--win-color);
+    }
+
+    100% {
+        box-shadow: 0 0 10px var(--win-color);
+    }
+}
+
+/* ====================================================== */
+/* 4.5 أشكال اللعب المختلفة (Skins) */
+/* ====================================================== */
+
+/* Skin: الحيوانات (Animals) */
+.board.skin-animals .cell.x::before {
+    content: '🦁';
+    text-shadow: 0 0 20px rgba(255, 165, 0, 0.6);
+}
+
+.board.skin-animals .cell.o::before {
+    content: '🐯';
+    text-shadow: 0 0 20px rgba(255, 140, 0, 0.6);
+}
+
+.board.skin-animals .cell.winning-cell.x::before,
+.board.skin-animals .cell.winning-cell.o::before {
+    filter: brightness(1.3);
+}
+
+/* Skin: العناصر (Elements) */
+.board.skin-elements .cell.x::before {
+    content: '🔥';
+    text-shadow: 0 0 20px rgba(255, 69, 0, 0.8);
+}
+
+.board.skin-elements .cell.o::before {
+    content: '❄️';
+    text-shadow: 0 0 20px rgba(135, 206, 250, 0.8);
+}
+
+.board.skin-elements .cell.winning-cell.x::before,
+.board.skin-elements .cell.winning-cell.o::before {
+    filter: brightness(1.4) drop-shadow(0 0 10px currentColor);
+}
+
+/* تأثيرات إضافية للـ Skins */
+.board.skin-animals .cell:not(.x):not(.o):hover,
+.board.skin-elements .cell:not(.x):not(.o):hover {
+    background-color: rgba(255, 215, 0, 0.1);
+    border-color: var(--win-color);
+}
+
+/* ====================================================== */
+/* 5. الأزرار السفلية */
+/* ====================================================== */
+#restart-button,
+#back-to-menu-button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-family: var(--font-family);
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    color: var(--bg-color);
+    cursor: pointer;
+    transition: all 0.2s;
+    margin: 0 5px;
+}
+
+#restart-button {
+    background-color: var(--accent-color-2);
+}
+
+#back-to-menu-button {
+    background-color: var(--secondary-text-color);
+}
+
+#restart-button:hover {
+    box-shadow: 0 0 15px var(--accent-color-2);
+    transform: translateY(-2px);
+}
+
+#back-to-menu-button:hover {
+    background-color: var(--primary-text-color);
+    transform: translateY(-2px);
+}
+
+/* ====================================================== */
+/* 3. حاوية اللعبة (Game Container) */
+/* ====================================================== */
+#game-container {
+    transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+}
+
+#game-container.hidden,
+#start-menu.hidden {
+    opacity: 0;
+    transform: scale(0.95);
+    pointer-events: none;
+    position: absolute;
+}
+
+#scoreboard {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 350px;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+#scoreboard>div {
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+#scoreboard .active-player {
+    border-color: var(--accent-color-1);
+    box-shadow: 0 0 15px var(--accent-color-1);
+    color: var(--accent-color-1);
+    transform: scale(1.05);
+}
+
+#status-text {
+    height: 30px;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    color: var(--primary-text-color);
+}
+
+/* ====================================================== */
+/* 4. لوحة اللعب (Board & Cells) */
+/* ====================================================== */
+.board {
+    display: grid;
+    grid-template-columns: repeat(3, var(--cell-size));
+    grid-template-rows: repeat(3, var(--cell-size));
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.cell {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    background-color: var(--card-color);
+    border: 1px solid var(--secondary-text-color);
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 5rem;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.cell:not(.x):not(.o):hover {
+    background-color: rgba(48, 197, 210, 0.1);
+    transform: scale(1.03);
+}
+
+.cell.x,
+.cell.o {
+    cursor: not-allowed;
+    animation: placeMark 0.3s ease-out;
+}
+
+@keyframes placeMark {
+    from {
+        transform: scale(0.6);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.cell.x::before {
+    content: 'X';
+    color: var(--accent-color-1);
+    text-shadow: 0 0 15px var(--accent-color-1);
+}
+
+.cell.o::before {
+    content: 'O';
+    color: var(--accent-color-2);
+    text-shadow: 0 0 15px var(--accent-color-2);
+}
+
+.cell.winning-cell {
+    background-color: var(--win-color);
+    animation: winPulse 1s infinite;
+}
+
+.cell.winning-cell.x::before,
+.cell.winning-cell.o::before {
+    color: var(--bg-color);
+    text-shadow: none;
+}
+
+@keyframes winPulse {
+    0% {
+        box-shadow: 0 0 10px var(--win-color);
+    }
+
+    50% {
+        box-shadow: 0 0 25px var(--win-color);
+    }
+
+    100% {
+        box-shadow: 0 0 10px var(--win-color);
+    }
+}
+
+/* ====================================================== */
+/* 5. الأزرار السفلية */
+/* ====================================================== */
+#restart-button,
+#back-to-menu-button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-family: var(--font-family);
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    color: var(--bg-color);
+    cursor: pointer;
+    transition: all 0.2s;
+    margin: 0 5px;
+}
+
+#restart-button {
+    background-color: var(--accent-color-2);
+}
+
+#back-to-menu-button {
+    background-color: var(--secondary-text-color);
+}
+
+#restart-button:hover {
+    box-shadow: 0 0 15px var(--accent-color-2);
+    transform: translateY(-2px);
+}
+
+#back-to-menu-button:hover {
+    background-color: var(--primary-text-color);
+    transform: translateY(-2px);
+}
+
+/* ====================================================== */
+/* 6. تصميم متجاوب (Responsive) */
+/* ====================================================== */
+/* ====================================================== */
+/* 7. تحسينات القائمة الجديدة */
+/* ====================================================== */
+.separator {
+    margin: 10px 0;
+    color: var(--secondary-text-color);
+    font-size: 0.9rem;
+    position: relative;
+}
+
+.separator::before,
+.separator::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background-color: var(--secondary-text-color);
+}
+
+.separator::before {
+    left: 0;
+}
+
+.separator::after {
+    right: 0;
+}
+
+.room-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* ====================================================== */
+/* 8. نظام المحادثة (Chat System) */
+/* ====================================================== */
+.game-area {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+#chat-container {
+    width: 300px;
+    height: 400px;
+    background: var(--card-color);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+#chat-messages {
+    flex-grow: 1;
+    padding: 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+.chat-message {
+    padding: 5px 10px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    max-width: 85%;
+    word-wrap: break-word;
+}
+
+.chat-message.my-message {
+    align-self: flex-end;
+    background: rgba(48, 197, 210, 0.2);
+    border-right: 3px solid var(--accent-color-1);
+}
+
+.chat-message.opponent-message {
+    align-self: flex-start;
+    background: rgba(232, 73, 130, 0.2);
+    border-left: 3px solid var(--accent-color-2);
+}
+
+.chat-message .sender-name {
+    font-size: 0.75rem;
+    color: var(--secondary-text-color);
+    margin-bottom: 2px;
+    display: block;
+}
+
+.chat-input-area {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid var(--border-color);
+    gap: 5px;
+}
+
+.chat-input-area input {
+    flex-grow: 1;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid var(--secondary-text-color);
+    background: var(--bg-color);
+    color: var(--primary-text-color);
+}
+
+.chat-input-area button {
+    padding: 8px 15px;
+    background: var(--accent-color-1);
+    color: var(--bg-color);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* ====================================================== */
+/* 8.5 شريط التفاعلات (Reactions Bar) */
+/* ====================================================== */
+#reactions-bar {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.reaction-btn {
+    font-size: 1.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s;
+    padding: 5px;
+}
+
+.reaction-btn:hover {
+    transform: scale(1.3) rotate(10deg);
+}
+
+.floating-reaction {
+    position: absolute;
+    font-size: 3rem;
+    pointer-events: none;
+    animation: floatUp 2s ease-out forwards;
+    z-index: 100;
+}
+
+@keyframes floatUp {
+    0% {
+        transform: translateY(0) scale(0.5);
+        opacity: 0;
+    }
+
+    20% {
+        opacity: 1;
+        transform: translateY(-20px) scale(1.2);
+    }
+
+    100% {
+        transform: translateY(-100px) scale(1);
+        opacity: 0;
+    }
+}
+
+/* ====================================================== */
+/* 9. لوحة المتصدرين (Leaderboard) */
+/* ====================================================== */
+#leaderboard {
+    max-height: 150px;
+    overflow-y: auto;
+    text-align: right;
+}
+
+.leaderboard-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.9rem;
+}
+
+.leaderboard-item:last-child {
+    border-bottom: none;
+}
+
+.leaderboard-item .wins {
+    color: var(--win-color);
+    font-weight: bold;
+}
+
+/* ====================================================== */
+/* 10. تحسينات متجاوبة إضافية */
+/* ====================================================== */
+@media (max-width: 700px) {
+    .game-area {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #chat-container {
+        width: 100%;
+        max-width: 320px;
+        /* نفس عرض اللوحة تقريباً */
+        height: 200px;
+    }
+}
+
+@media (max-width: 400px) {
+    :root {
+        --cell-size: 24vw;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    .menu-section {
+        width: 85vw;
+    }
+
+    #scoreboard {
+        font-size: 0.9rem;
+    }
+}
