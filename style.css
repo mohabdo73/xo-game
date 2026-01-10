@@ -576,8 +576,10 @@ h2 {
 /* 9. لوحة المتصدرين (Leaderboard) */
 /* ====================================================== */
 #leaderboard {
-    max-height: 150px;
-    overflow-y: auto;
+    max-height: 180px;
+    /* يتناسب مع 5 أشخاص تقريباً */
+    overflow-y: hidden;
+    /* يمنع التمرير الزائد */
     text-align: right;
 }
 
