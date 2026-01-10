@@ -113,6 +113,9 @@ skinSelect.addEventListener('change', (e) => {
     currentSkin = e.target.value;
     localStorage.setItem('xo_skin', currentSkin);
     applySkin(currentSkin);
+    if (socket && room && gameMode.startsWith('online')) {
+        socket.emit('changeSkin', { room, skin: currentSkin });
+    }
 });
 
 soundToggle.checked = isSoundEnabled;
@@ -199,6 +202,7 @@ function showMainMenu() {
     gameContainer.classList.add('hidden');
     startMenu.classList.remove('hidden');
     if (socket) socket.disconnect();
+    room = null; // تصفير الغرفة
     roomCodeDisplay.classList.add('hidden');
     chatMessages.innerHTML = ''; // مسح المحادثة
 }
@@ -326,6 +330,19 @@ function swapTurns() {
 }
 
 function setStatusText() {
+    // تحديث تمييز اللاعب النشط
+    const isXTurn = gameMode.startsWith('online') ?
+        ((playerSymbol === 'X' && myTurn) || (playerSymbol === 'O' && !myTurn)) :
+        !oTurn;
+
+    if (isXTurn) {
+        document.getElementById('player-x-score').classList.add('active-player');
+        document.getElementById('player-o-score').classList.remove('active-player');
+    } else {
+        document.getElementById('player-o-score').classList.add('active-player');
+        document.getElementById('player-x-score').classList.remove('active-player');
+    }
+
     if (gameMode.startsWith('online')) {
         statusText.innerText = myTurn ? "دورك الآن." : `دور ${opponentName}...`;
     } else {
@@ -473,12 +490,12 @@ function connectToServer(mode) {
         }
 
         if (mode === 'online-create') {
-            socket.emit('createRoom', { playerName: myName });
+            socket.emit('createRoom', { playerName: myName, skin: currentSkin });
         } else if (mode === 'online-join') {
             const roomId = roomCodeInput.value.trim();
-            socket.emit('joinRoom', { roomId: roomId, playerName: myName });
+            socket.emit('joinRoom', { roomId: roomId, playerName: myName }); // Joiner typically adopts room skin
         } else if (mode === 'online-match') {
-            socket.emit('findMatch', { playerName: myName });
+            socket.emit('findMatch', { playerName: myName, skin: currentSkin });
         } else if (mode === 'online-spectate') {
             const roomId = roomCodeInput.value.trim();
             isSpectator = true;
@@ -495,7 +512,7 @@ function connectToServer(mode) {
         roomCodeDisplay.classList.remove('hidden');
         startMenu.classList.remove('hidden'); // إبقاء القائمة ظاهرة حتى ينضم أحد
         gameContainer.classList.add('hidden');
-
+        room = data.roomId; // تعيين الغرفة هنا لتعمل المزامنة
         localStorage.setItem('xo_active_room', data.roomId);
 
         // عرض رسالة انتظار في القائمة
@@ -522,6 +539,9 @@ function connectToServer(mode) {
         room = data.room;
         myTurn = data.turn;
         opponentName = data.opponentName || "Opponent";
+        currentSkin = data.skin || 'classic';
+        applySkin(currentSkin);
+        skinSelect.value = currentSkin;
 
         // تحديث الأسماء في الواجهة
         if (playerSymbol === 'X') {
@@ -546,6 +566,9 @@ function connectToServer(mode) {
 
         playerSymbol = data.symbol;
         room = data.room;
+        currentSkin = data.skin || 'classic';
+        applySkin(currentSkin);
+        skinSelect.value = currentSkin;
 
         // Restore Board
         const boardState = data.board;
@@ -583,14 +606,17 @@ function connectToServer(mode) {
     });
 
     socket.on('opponentMove', (data) => {
-        const opponentClass = playerSymbol === 'X' ? O_CLASS : X_CLASS;
+        // إذا كنت أنا صاحب الحركة، تجاهلها (سيرفر يرسل للكل)
+        if (data.senderId === socket.id) return;
+
+        const moveClass = data.symbol === 'X' ? X_CLASS : O_CLASS;
         const cell = cells[data.cellIndex];
 
-        placeMark(cell, opponentClass);
+        placeMark(cell, moveClass);
         if (isSoundEnabled) clickSound.play();
 
-        if (checkWin(opponentClass)) {
-            endGame(false, opponentClass);
+        if (checkWin(moveClass)) {
+            endGame(false, moveClass);
         } else if (isDraw()) {
             endGame(true);
         } else {
@@ -666,6 +692,16 @@ function connectToServer(mode) {
 
         statusText.innerText = `مشاهدة المباراة: ${data.room}`;
         addChatMessage("System", "لقد انضممت كمشاهد.");
+
+        currentSkin = data.skin || 'classic';
+        applySkin(currentSkin);
+    });
+
+    socket.on('skinChanged', (data) => {
+        currentSkin = data.skin;
+        applySkin(currentSkin);
+        skinSelect.value = currentSkin;
+        addChatMessage("System", `تغير مظهر اللعبة إلى: ${currentSkin}`);
     });
 
     socket.on('reaction', (data) => {

@@ -58,6 +58,7 @@ io.on('connection', (socket) => {
             spectators: [],
             board: Array(9).fill(null),
             turn: 'X',
+            currentSkin: data.skin || 'classic',
             playAgainVotes: 0,
             disconnectTimeout: null // مؤقت لحذف الغرفة عند الانقطاع
         };
@@ -109,14 +110,16 @@ io.on('connection', (socket) => {
             symbol: 'X',
             room: roomId,
             turn: true,
-            opponentName: playerName
+            opponentName: playerName,
+            skin: room.currentSkin
         });
 
         io.to(socket.id).emit('gameStart', {
             symbol: 'O',
             room: roomId,
             turn: false,
-            opponentName: room.players.X.name
+            opponentName: room.players.X.name,
+            skin: room.currentSkin
         });
 
         // إرسال اللوحة الحالية (فقط في حالة إعادة الاتصال قد نحتاج لتحديث البورد، هنا نبدأ جديد)
@@ -164,8 +167,6 @@ io.on('connection', (socket) => {
             const waitingPlayerName = waitingPlayer.name; // حفظ الاسم قبل الحذف
             const waitingPlayerUserId = waitingPlayer.userId;
 
-            waitingPlayer = null;
-
             rooms[roomId] = {
                 players: {
                     'X': { id: playerX.id, userId: waitingPlayerUserId, name: waitingPlayerName, connected: true },
@@ -173,9 +174,12 @@ io.on('connection', (socket) => {
                 },
                 board: Array(9).fill(null),
                 turn: 'X',
+                currentSkin: waitingPlayer.skin || 'classic',
                 playAgainVotes: 0,
                 disconnectTimeout: null
             };
+
+            waitingPlayer = null; // تعيينه لنل هنا بعد استهلاك بياناته
 
             playerX.join(roomId);
             playerO.join(roomId);
@@ -186,17 +190,19 @@ io.on('connection', (socket) => {
                 symbol: 'X',
                 room: roomId,
                 turn: true,
-                opponentName: playerName
+                opponentName: playerName,
+                skin: rooms[roomId].currentSkin
             });
             io.to(playerO.id).emit('gameStart', {
                 symbol: 'O',
                 room: roomId,
                 turn: false,
-                opponentName: waitingPlayerName
+                opponentName: waitingPlayerName,
+                skin: rooms[roomId].currentSkin
             });
 
         } else {
-            waitingPlayer = { socket: socket, name: playerName, userId: userId };
+            waitingPlayer = { socket: socket, name: playerName, userId: userId, skin: data.skin };
             socket.emit('waitingForPlayer');
         }
     });
@@ -218,7 +224,8 @@ io.on('connection', (socket) => {
             room: roomId,
             players: room.players,
             board: room.board,
-            turn: room.turn
+            turn: room.turn,
+            skin: room.currentSkin
         });
 
         console.log(`مشاهد انضم للغرفة ${roomId}`);
@@ -245,6 +252,14 @@ io.on('connection', (socket) => {
         }
     });
 
+    socket.on('changeSkin', (data) => {
+        const room = data.room;
+        if (room && rooms[room]) {
+            rooms[room].currentSkin = data.skin;
+            io.to(room).emit('skinChanged', { skin: data.skin });
+        }
+    });
+
     // =========================================================================
     // --- التحقق من صحة الحركات على الخادم ---
     // =========================================================================
@@ -266,7 +281,8 @@ io.on('connection', (socket) => {
             io.to(room).emit('opponentMove', {
                 cellIndex: data.cellIndex,
                 symbol: playerSymbol,
-                turn: game.turn
+                turn: game.turn,
+                senderId: socket.id
             });
 
             // التحقق من الفوز لتحديث المتصدرين
@@ -297,13 +313,15 @@ io.on('connection', (socket) => {
                     symbol: 'X',
                     room: room,
                     turn: true,
-                    opponentName: game.players.O.name
+                    opponentName: game.players.O.name,
+                    skin: game.currentSkin
                 });
                 io.to(game.players.O.id).emit('gameStart', {
                     symbol: 'O',
                     room: room,
                     turn: false,
-                    opponentName: game.players.X.name
+                    opponentName: game.players.X.name,
+                    skin: game.currentSkin
                 });
             } else {
                 // إبلاغ الخصم بالطلب
@@ -380,7 +398,8 @@ io.on('connection', (socket) => {
             room: roomId,
             board: room.board,
             turn: room.turn === symbol,
-            opponentName: symbol === 'X' ? (room.players.O ? room.players.O.name : 'Waiting...') : room.players.X.name
+            opponentName: symbol === 'X' ? (room.players.O ? room.players.O.name : 'Waiting...') : room.players.X.name,
+            skin: room.currentSkin
         });
 
         console.log(`اللاعب ${room.players[symbol].name} عاد للغرفة ${roomId}`);
