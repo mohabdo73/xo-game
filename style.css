@@ -32,9 +32,9 @@ body {
     animation: gradientBG 15s ease infinite;
     color: var(--primary-text-color);
     margin: 0;
-    padding: 20px;
+    padding: 10px;
     box-sizing: border-box;
-    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 @keyframes gradientBG {
@@ -52,12 +52,13 @@ body {
 }
 
 h1 {
-    font-size: 2.5rem;
+    font-size: 2.2rem;
     font-weight: 700;
     color: var(--accent-color-1);
     text-shadow: 0 0 10px var(--accent-color-1), 0 0 20px rgba(48, 197, 210, 0.5);
     transition: opacity 0.5s ease-in-out;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
+    margin-top: 10px;
 }
 
 h2 {
@@ -73,34 +74,70 @@ h2 {
 #start-menu {
     display: flex;
     flex-direction: column;
-    gap: 25px;
+    gap: 15px;
     text-align: center;
     transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+    width: 95%;
+    max-width: 800px;
+}
+
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
 }
 
 .menu-section {
     background: var(--card-color);
     backdrop-filter: blur(10px);
     border: 1px solid var(--border-color);
-    padding: 25px;
-    border-radius: 15px;
+    padding: 15px;
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    width: 320px;
-    box-shadow: 0 0 15px rgba(48, 197, 210, 0.3);
+    gap: 10px;
+    box-shadow: 0 0 15px rgba(48, 197, 210, 0.2);
+}
+
+.menu-section.full-width {
+    grid-column: span 2;
+}
+
+.menu-section h3 {
+    margin: 0 0 5px 0;
+    font-size: 1rem;
+    color: var(--accent-color-1);
+    border-bottom: 1px solid rgba(48, 197, 210, 0.3);
+    padding-bottom: 3px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    text-align: right;
+}
+
+.input-group label {
+    font-size: 0.85rem;
+}
+
+.mode-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 #start-menu input,
 #start-menu select {
-    padding: 12px;
-    border-radius: 8px;
+    padding: 8px;
+    border-radius: 6px;
     border: 1px solid var(--secondary-text-color);
     background-color: var(--bg-color);
     color: var(--primary-text-color);
     text-align: center;
     font-family: var(--font-family);
-    font-size: 1rem;
+    font-size: 0.9rem;
     transition: all 0.3s ease;
 }
 
@@ -112,15 +149,15 @@ h2 {
 }
 
 #start-menu button {
-    font-size: 1.1rem;
+    font-size: 0.95rem;
     font-family: var(--font-family);
     font-weight: 700;
-    padding: 12px 25px;
+    padding: 8px 15px;
     cursor: pointer;
     border: 2px solid var(--accent-color-1);
     background-color: transparent;
     color: var(--accent-color-1);
-    border-radius: 8px;
+    border-radius: 6px;
     transition: all 0.3s ease;
     text-shadow: 0 0 5px rgba(48, 197, 210, 0.7);
 }
@@ -241,7 +278,6 @@ h2 {
     grid-template-columns: repeat(3, var(--cell-size));
     grid-template-rows: repeat(3, var(--cell-size));
     gap: 10px;
-    margin-bottom: 25px;
 }
 
 .cell {
@@ -365,9 +401,12 @@ h2 {
     border-color: var(--win-color);
 }
 
-/* ====================================================== */
-/* 5. الأزرار السفلية */
-/* ====================================================== */
+.game-controls {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
 #restart-button,
 #back-to-menu-button {
     padding: 10px 20px;
@@ -379,7 +418,7 @@ h2 {
     color: var(--bg-color);
     cursor: pointer;
     transition: all 0.2s;
-    margin: 0 5px;
+    margin: 5px;
 }
 
 #restart-button {
@@ -442,15 +481,30 @@ h2 {
 /* ====================================================== */
 .game-area {
     display: flex;
-    gap: 20px;
-    align-items: flex-start;
-    flex-wrap: wrap;
+    gap: 40px;
+    align-items: stretch;
     justify-content: center;
+    margin-bottom: 25px;
+}
+
+.main-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.side-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 320px;
+    justify-content: space-between;
 }
 
 #chat-container {
-    width: 300px;
-    height: 400px;
+    width: 100%;
+    height: 320px;
     background: var(--card-color);
     border: 1px solid var(--border-color);
     border-radius: 15px;
@@ -530,7 +584,6 @@ h2 {
     display: flex;
     gap: 10px;
     justify-content: center;
-    margin-top: 10px;
     width: 100%;
 }
 
@@ -576,19 +629,17 @@ h2 {
 /* 9. لوحة المتصدرين (Leaderboard) */
 /* ====================================================== */
 #leaderboard {
-    max-height: 180px;
-    /* يتناسب مع 5 أشخاص تقريباً */
-    overflow-y: hidden;
-    /* يمنع التمرير الزائد */
+    max-height: 150px;
+    overflow: hidden;
     text-align: right;
 }
 
 .leaderboard-item {
     display: flex;
     justify-content: space-between;
-    padding: 5px 0;
+    padding: 3px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .leaderboard-item:last-child {
@@ -603,17 +654,24 @@ h2 {
 /* ====================================================== */
 /* 10. تحسينات متجاوبة إضافية */
 /* ====================================================== */
-@media (max-width: 700px) {
+@media (max-width: 850px) {
     .game-area {
         flex-direction: column;
         align-items: center;
+        gap: 20px;
+    }
+
+    .main-column {
+        gap: 20px;
+    }
+
+    .side-panel {
+        width: 100%;
+        max-width: 320px;
     }
 
     #chat-container {
-        width: 100%;
-        max-width: 320px;
-        /* نفس عرض اللوحة تقريباً */
-        height: 200px;
+        height: 250px;
     }
 }
 
@@ -626,11 +684,18 @@ h2 {
         font-size: 2rem;
     }
 
-    .menu-section {
-        width: 85vw;
-    }
+    @media (max-width: 600px) {
+        .menu-grid {
+            grid-template-columns: 1fr;
+        }
 
-    #scoreboard {
-        font-size: 0.9rem;
+        .menu-section.full-width {
+            grid-column: span 1;
+        }
+
+        #start-menu {
+            max-height: 90vh;
+            overflow-y: auto;
+        }
     }
 }

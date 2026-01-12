@@ -12,67 +12,68 @@
     <h1>لعبة XO</h1>
 
     <div id="start-menu">
-        <h2>إعدادات اللعبة</h2>
+        <h2 id="menu-title">إعدادات اللعبة</h2>
 
-        <div class="menu-section">
-            <label for="player-name">اسم اللاعب:</label>
-            <input type="text" id="player-name" placeholder="أدخل اسمك هنا">
-        </div>
-
-        <div class="menu-section">
-            <label for="difficulty-select">مستوى صعوبة الكمبيوتر:</label>
-            <select id="difficulty-select">
-                <option value="easy">سهل (Easy)</option>
-                <option value="medium">متوسط (Medium)</option>
-                <option value="hard" selected>مستحيل (Impossible)</option>
-            </select>
-        </div>
-
-        <div class="menu-section">
-            <h3>المظهر والأصوات</h3>
-            <label for="skin-select">شكل اللعب (Skin):</label>
-            <select id="skin-select">
-                <option value="classic">كلاسيكي (X / O)</option>
-                <option value="animals">حيوانات (🦁 / 🐯)</option>
-                <option value="elements">عناصر (🔥 / ❄️)</option>
-            </select>
-            <div class="setting-row">
-                <label for="sound-toggle">الأصوات:</label>
-                <input type="checkbox" id="sound-toggle" checked>
-            </div>
-        </div>
-
-        <div class="menu-section">
-            <h3>اختر وضع اللعب</h3>
-            <button id="pvp-button">لاعب ضد لاعب (محلي)</button>
-            <button id="pvc-button">لاعب ضد الكمبيوتر</button>
-        </div>
-
-        <div class="menu-section">
-            <h3>اللعب عبر الإنترنت</h3>
-            <button id="find-match-button">بحث عشوائي</button>
-
-            <div class="separator">أو</div>
-
-            <div class="room-controls">
-                <button id="create-room-button">إنشاء غرفة خاصة</button>
-                <div class="join-room-section">
-                    <div class="join-inputs">
-                        <input type="text" id="room-code-input" placeholder="أدخل كود الغرفة">
-                    </div>
-                    <div class="join-buttons">
-                        <button id="join-room-button">لعب</button>
-                        <button id="spectate-button" class="secondary-btn">مشاهدة</button>
-                    </div>
+        <div class="menu-grid">
+            <div class="menu-section">
+                <h3>اللاعب و الصعوبة</h3>
+                <div class="input-group">
+                    <label for="player-name">اسم اللاعب:</label>
+                    <input type="text" id="player-name" placeholder="أدخل اسمك هنا">
+                </div>
+                <div class="input-group">
+                    <label for="difficulty-select">مستوى الكمبيوتر:</label>
+                    <select id="difficulty-select">
+                        <option value="easy">سهل (Easy)</option>
+                        <option value="medium">متوسط (Medium)</option>
+                        <option value="hard" selected>مستحيل (Impossible)</option>
+                    </select>
                 </div>
             </div>
-            <div id="room-code-display" class="hidden"></div>
-        </div>
 
-        <div class="menu-section">
-            <h3>لوحة المتصدرين (عبر الإنترنت)</h3>
-            <div id="leaderboard">
-                <p>جاري التحميل...</p>
+            <div class="menu-section">
+                <h3>المظهر والأصوات</h3>
+                <label for="skin-select">شكل اللعب (Skin):</label>
+                <select id="skin-select">
+                    <option value="classic">كلاسيكي (X / O)</option>
+                    <option value="animals">حيوانات (🦁 / 🐯)</option>
+                    <option value="elements">عناصر (🔥 / ❄️)</option>
+                </select>
+                <div class="setting-row">
+                    <label for="sound-toggle">الأصوات:</label>
+                    <input type="checkbox" id="sound-toggle" checked>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <h3>أنماط اللعب</h3>
+                <div class="mode-buttons">
+                    <button id="pvp-button">لاعب ضد لاعب</button>
+                    <button id="pvc-button">لاعب ضد الكمبيوتر</button>
+                    <button id="find-match-button">بحث عشوائي</button>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <h3>الغرف الخاصة</h3>
+                <div class="room-controls">
+                    <button id="create-room-button">إنشاء غرفة</button>
+                    <div class="join-room-section">
+                        <input type="text" id="room-code-input" placeholder="كود الغرفة">
+                        <div class="join-buttons">
+                            <button id="join-room-button">لعب</button>
+                            <button id="spectate-button" class="secondary-btn">مشاهدة</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="room-code-display" class="hidden"></div>
+            </div>
+
+            <div class="menu-section full-width">
+                <h3>لوحة المتصدرين</h3>
+                <div id="leaderboard">
+                    <p>جاري التحميل...</p>
+                </div>
             </div>
         </div>
     </div>
@@ -90,37 +91,41 @@
         <h2 id="status-text"></h2>
 
         <div class="game-area">
-            <div id="board" class="board">
-                <div class="cell" data-cell></div>
-                <div class="cell" data-cell></div>
-                <div class="cell" data-cell></div>
-                <div class="cell" data-cell></div>
-                <div class="cell" data-cell></div>
-                <div class="cell" data-cell></div>
-                <div class="cell" data-cell></div>
-                <div class="cell" data-cell></div>
-                <div class="cell" data-cell></div>
+            <div class="main-column">
+                <div id="board" class="board">
+                    <div class="cell" data-cell></div>
+                    <div class="cell" data-cell></div>
+                    <div class="cell" data-cell></div>
+                    <div class="cell" data-cell></div>
+                    <div class="cell" data-cell></div>
+                    <div class="cell" data-cell></div>
+                    <div class="cell" data-cell></div>
+                    <div class="cell" data-cell></div>
+                    <div class="cell" data-cell></div>
+                </div>
+
+                <div class="game-controls">
+                    <button id="restart-button">إعادة اللعب</button>
+                    <button id="back-to-menu-button">العودة للقائمة</button>
+                </div>
             </div>
 
-        </div>
+            <div class="side-panel">
+                <div id="reactions-bar" class="hidden">
+                    <button class="reaction-btn">👏</button>
+                    <button class="reaction-btn">😂</button>
+                    <button class="reaction-btn">😮</button>
+                    <button class="reaction-btn">😡</button>
+                </div>
 
-        <div id="reactions-bar" class="hidden">
-            <button class="reaction-btn">👏</button>
-            <button class="reaction-btn">😂</button>
-            <button class="reaction-btn">😮</button>
-            <button class="reaction-btn">😡</button>
-        </div>
-
-        <div id="chat-container" class="hidden">
-            <div id="chat-messages"></div>
-            <div class="chat-input-area">
-                <input type="text" id="chat-input" placeholder="اكتب رسالة...">
-                <button id="send-chat-button">إرسال</button>
+                <div id="chat-container" class="hidden">
+                    <div id="chat-messages"></div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chat-input" placeholder="اكتب رسالة...">
+                        <button id="send-chat-button">إرسال</button>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="game-controls">
-            <button id="restart-button">إعادة اللعب</button>
-            <button id="back-to-menu-button">العودة للقائمة</button>
         </div>
     </div>
 
