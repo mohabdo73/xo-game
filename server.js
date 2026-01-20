@@ -4,7 +4,8 @@ const http = require('http');
 const socketIo = require('socket.io');
 const fs = require('fs');
 const path = require('path');
-const LEADERBOARD_FILE = path.join(__dirname, 'leaderboard.json');
+const mongoose = require('mongoose');
+require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);
@@ -14,6 +15,24 @@ const io = socketIo(server, {
         methods: ["GET", "POST"]
     }
 });
+
+// --- إعداد قاعدة بيانات MongoDB ---
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (MONGODB_URI) {
+    mongoose.connect(MONGODB_URI)
+        .then(() => console.log('تم الاتصال بقاعدة بيانات MongoDB بنجاح'))
+        .catch(err => console.error('خطأ في الاتصال بقاعدة البيانات:', err));
+} else {
+    console.warn('تحذير: لم يتم العثور على رابط MONGODB_URI في ملف .env. سيتم تعطيل لوحة المتصدرين.');
+}
+
+const leaderboardSchema = new mongoose.Schema({
+    name: { type: String, required: true, unique: true },
+    wins: { type: Number, default: 0 }
+});
+
+const Leaderboard = mongoose.model('Leaderboard', leaderboardSchema);
 
 let waitingPlayer = null;
 // =========================================================================
@@ -405,38 +424,45 @@ io.on('connection', (socket) => {
         console.log(`اللاعب ${room.players[symbol].name} عاد للغرفة ${roomId}`);
     }
 
-    function updateLeaderboard(winnerName) {
-        let leaderboard = {};
-        try {
-            if (fs.existsSync(LEADERBOARD_FILE)) {
-                leaderboard = JSON.parse(fs.readFileSync(LEADERBOARD_FILE));
-            }
-        } catch (e) { console.error("Error reading leaderboard:", e); }
+    async function updateLeaderboard(winnerName) {
+        if (!MONGODB_URI) return;
 
-        if (leaderboard[winnerName]) {
-            leaderboard[winnerName]++;
-        } else {
-            leaderboard[winnerName] = 1;
+        try {
+            // تحديث عدد مرات الفوز أو إنشاء لاعب جديد إذا لم يكن موجوداً
+            await Leaderboard.findOneAndUpdate(
+                { name: winnerName },
+                { $inc: { wins: 1 } },
+                { upsert: true, new: true }
+            );
+
+            // جلب أفضل 10 لاعبين لإرسال التحديث للجميع
+            const topPlayers = await Leaderboard.find().sort({ wins: -1 }).limit(10);
+
+            // تحويل البيانات لشكل الكائن الذي يتوقعه الفرونت إند { name: wins }
+            const leaderboardData = {};
+            topPlayers.forEach(player => {
+                leaderboardData[player.name] = player.wins;
+            });
+
+            io.emit('leaderboardUpdate', leaderboardData);
+        } catch (e) {
+            console.error("Error updating leaderboard in MongoDB:", e);
         }
-
-        try {
-            fs.writeFileSync(LEADERBOARD_FILE, JSON.stringify(leaderboard));
-        } catch (e) { console.error("Error writing leaderboard:", e); }
-
-        // بث التحديث للجميع
-        // Access io from outer scope
-        // io is not defined here if this was inside io.on, but moving it out means io must be global or passed.
-        // io is defined at top level, so this is fine.
-        io.emit('leaderboardUpdate', leaderboard);
     }
 
-    function sendLeaderboard(socket) {
+    async function sendLeaderboard(socket) {
+        if (!MONGODB_URI) return;
+
         try {
-            if (fs.existsSync(LEADERBOARD_FILE)) {
-                const leaderboard = JSON.parse(fs.readFileSync(LEADERBOARD_FILE));
-                socket.emit('leaderboardUpdate', leaderboard);
-            }
-        } catch (e) { }
+            const topPlayers = await Leaderboard.find().sort({ wins: -1 }).limit(10);
+            const leaderboardData = {};
+            topPlayers.forEach(player => {
+                leaderboardData[player.name] = player.wins;
+            });
+            socket.emit('leaderboardUpdate', leaderboardData);
+        } catch (e) {
+            console.error("Error reading leaderboard from MongoDB:", e);
+        }
     }
 
     function checkWin(board, currentClass) {
